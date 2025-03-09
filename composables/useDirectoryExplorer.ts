@@ -1,93 +1,102 @@
-interface DirectoryContent {
-  path: string;
-  directories: string[];
-  files: string[];
-}
+import { useFileExplorerSingleton } from '~/composables/useFileExplorer'
 
-export function useDirectoryExplorer(fileExplorer: {
-  currentPath: Ref<string>;
-  navigateTo: (dir: string) => void;
-  selectedFile: Ref<string | null>;
-}) {
-  const { currentPath, navigateTo, selectedFile } = fileExplorer
+export function useDirectoryExplorer() {
+  // File Explorer 싱글톤에서 필요한 상태 가져오기
+  const { currentPath, selectedFile, selectedDirectory } = useFileExplorerSingleton()
   
-  // 선택된 디렉토리 상태
-  const selectedDirectory = ref<string | null>(null)
-  
-  // 선택된 디렉토리의 내용을 저장할 상태
-  const directoryContents = ref<DirectoryContent>({
+  // 디렉토리 내용 상태
+  const directoryContents = ref({
     path: '',
     directories: [],
-    files: [],
+    files: []
   })
   
-  // 디렉토리 로딩 상태
+  // 로딩 상태
   const isLoading = ref(false)
   
-  // 디렉토리 선택 함수
-  async function selectDirectory(dir: string) {
-    selectedDirectory.value = dir
-    selectedFile.value = null // 파일 선택 초기화
-    
+  // 디렉토리 내용 가져오기
+  const fetchDirectoryContents = async (path = null) => {
+    if (!selectedDirectory.value) return
+
     isLoading.value = true
     
     try {
-      // 선택된 디렉토리 경로 구성
-      const dirPath = currentPath.value 
-        ? `${currentPath.value}/${dir}`
-        : dir
-        
-      // API 호출로 디렉토리 내용 가져오기
+      // 경로 계산: 지정된 경로 또는 현재 경로와 선택된 디렉토리 조합
+      const dirPath = path || `${currentPath.value}/${selectedDirectory.value}`
+      
       const response = await fetch(`/api/files?path=${encodeURIComponent(dirPath)}`)
-      if (!response.ok) throw new Error('디렉토리 내용을 가져오는데 실패했습니다.')
+      if (!response.ok) {
+        throw new Error('디렉토리 내용을 가져오는데 실패했습니다')
+      }
       
       const data = await response.json()
+      
       directoryContents.value = {
         path: dirPath,
         directories: data.directories || [],
-        files: data.files || [],
+        files: data.files || []
       }
     } catch (error) {
-      console.error('디렉토리 내용 로드 오류:', error)
-      directoryContents.value = {
-        path: currentPath.value ? `${currentPath.value}/${dir}` : dir,
-        directories: [],
-        files: [],
-      }
+      console.error('디렉토리 내용 가져오기 오류:', error)
     } finally {
       isLoading.value = false
     }
   }
   
-  // 선택된 디렉토리로 이동하는 함수
-  function navigateToSelected() {
-    if (selectedDirectory.value) {
-      navigateTo(selectedDirectory.value)
-      selectedDirectory.value = null // 선택 초기화
+  // 하위 디렉토리로 이동
+  const navigateToSubDirectory = (dir) => {
+    // 경로 계산: 현재 경로와 선택된 디렉토리, 그리고 클릭한 하위 디렉토리 조합
+    const targetPath = `${currentPath.value}/${selectedDirectory.value}/${dir}`
+    
+    // 패스 정규화 (중복 슬래시 제거)
+    const normalizedPath = targetPath.replace(/\/+/g, '/')
+    
+    // 상태 업데이트 및 이동
+    currentPath.value = normalizedPath
+    selectedDirectory.value = null
+    selectedFile.value = null
+    
+    // FileExplorer의 내용 갱신 (FileExplorerSingleton의 fetchDirectoryContents 호출)
+    const { fetchDirectoryContents: refreshExplorer } = useFileExplorerSingleton()
+    refreshExplorer()
+  }
+  
+  // 선택된 디렉토리가 변경될 때마다 내용 가져오기
+  watch(selectedDirectory, async (newDir, oldDir) => {
+    if (newDir) {
+      await fetchDirectoryContents()
+    } else {
+      // 디렉토리 선택이 취소되면 내용 초기화
       directoryContents.value = {
         path: '',
         directories: [],
         files: []
       }
     }
-  }
+  })
   
-  // 디렉토리 선택 초기화 함수
-  function clearDirectorySelection() {
-    selectedDirectory.value = null
-    directoryContents.value = {
-      path: '',
-      directories: [],
-      files: []
+  // 현재 경로가 변경될 때도 선택된 디렉토리가 있으면 내용 갱신
+  watch(currentPath, async () => {
+    if (selectedDirectory.value) {
+      await fetchDirectoryContents()
     }
-  }
-  
+  })
+
   return {
-    selectedDirectory,
     directoryContents,
     isLoading,
-    selectDirectory,
-    navigateToSelected,
-    clearDirectorySelection
+    fetchDirectoryContents,
+    navigateToSubDirectory
   }
+}
+
+// 싱글톤 인스턴스
+let directoryExplorerInstance: ReturnType<typeof useDirectoryExplorer> | undefined
+
+// 싱글톤 인스턴스 제공 함수
+export function useDirectoryExplorerSingleton() {
+  if (!directoryExplorerInstance) {
+    directoryExplorerInstance = useDirectoryExplorer()
+  }
+  return directoryExplorerInstance
 }
