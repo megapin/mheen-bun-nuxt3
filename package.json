@@ -28,6 +28,7 @@
     "pocketbase": "^0.21.5",
     "primeicons": "^7.0.0",
     "tabletojson": "^4.1.4",
+    "three": "^0.174.0",
     "tinymce": "^6.8.5",
     "vue3-moveable": "^0.28.0",
     "vue3-selecto": "^1.12.3"

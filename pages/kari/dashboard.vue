@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const selectedImg = ref<string>('jinseong-isometric-05.jpg')
+const selectedImg = ref<string>('/kari/svg/jinseong-isometric-05.svg')
 const units = ref(Array(8).fill(0).map((_, i) => `jinseong-isometric-0${i + 1}.jpg`))
 
 const activeTab = ref<string>('dashboard')
@@ -36,7 +36,7 @@ const toggleTab = (tab: string) => {
     </div>
 
     <div class="flex flex-1 justify-center items-center w-full h-full">
-      <img :src="`/kari/downloaded/units/${selectedImg}`" w-full h-full object-contain />
+      <img :src="`${selectedImg}`" w-full h-full object-contain />
     </div>
 
     <!-- <div v-if="activeTab === 'data'" class="flex flex-1 justify-center items-center w-full h-full">

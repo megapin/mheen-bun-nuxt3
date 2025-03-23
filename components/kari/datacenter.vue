@@ -1,23 +1,7 @@
 <script setup lang="ts">
-import kari_00 from '/public/kari/svg/kari_00.svg?raw'
-import kari_01 from '/public/kari/svg/kari_01.svg?raw'
-import kari_02 from '/public/kari/svg/kari_02.svg?raw'
-import kari_03 from '/public/kari/svg/kari_03.svg?raw'
-import kari_04 from '/public/kari/svg/kari_04.svg?raw'
-import kari_05 from '/public/kari/svg/kari_05.svg?raw'
-import kari_06 from '/public/kari/svg/kari_06.svg?raw'
-import kari_07 from '/public/kari/svg/kari_07.svg?raw'
-import kari_08 from '/public/kari/svg/kari_08.svg?raw'
-import kari_09 from '/public/kari/svg/kari_09.svg?raw'
-import kari_10 from '/public/kari/svg/kari_10.svg?raw'
-
-// const selectedImg = ref<string>('jinseong-isometric-05.jpg')
-const selectedImg = ref<string>('/kari/svg/yw-01')
-const units = ref(Array(8).fill(0).map((_, i) => `jinseong-isometric-0${i + 1}.jpg`))
-
-const activeTab = ref<string>('dashboard')
-
 // 실시간 데이터 업데이트를 위한 상태와 함수들
+// const activeTab = ref('dashboard')
+
 const filterEfficiency = ref(Math.floor(Math.random() * 40) + 50) // 50% ~ 90% 사이
 const tankCapacity = ref(Math.floor(Math.random() * 50) + 30) // 30% ~ 80% 사이
 const flowRate = ref(Math.floor(Math.random() * 50) + 25) // 25 ~ 75 m³/hr 사이
@@ -101,12 +85,7 @@ const startDataUpdates = () => {
         alertLogs.value.pop()
       }
     }
-  }, 1500)
-}
-
-// 태그 전환 함수
-const toggleTab = (tab: string) => {
-  activeTab.value = tab
+  }, 2000)
 }
 
 // 부드러운 SVG 곡선 경로 생성 함수
@@ -137,169 +116,23 @@ const createSmoothPath = (points) => {
 };
 
 
-// 각 이미지의 위치 상태 추가
-const imagePositions = ref([
-  { id: 'kari_01', x: 0, y: 0, isDragging: false },
-  { id: 'kari_02', x: 100, y: 100, isDragging: false },
-  { id: 'kari_03', x: 200, y: 200, isDragging: false },
-  { id: 'kari_04', x: 400, y: 100, isDragging: false },
-  { id: 'kari_05', x: 500, y: 20, isDragging: false },
-  { id: 'kari_06', x: 600, y: 50, isDragging: false },
-  { id: 'kari_07', x: -600, y: 100, isDragging: false },
-  { id: 'kari_08', x: -500, y: -500, isDragging: false },
-  { id: 'kari_09', x: -300, y: -300, isDragging: false },
-  { id: 'kari_10', x: -100, y: -100, isDragging: false },
-]);
-
-// 드래그 관련 상태 및 함수
-const dragOffset = ref({ x: 0, y: 0 });
-
-const startDrag = (event, image) => {
-  const index = imagePositions.value.findIndex(img => img.id === image.id);
-  if (index !== -1) {
-    // 현재 드래그 중인 이미지를 맨 위로 표시하기 위해 z-index 조정을 위한 플래그
-    imagePositions.value[index].isDragging = true;
-    
-    // 마우스 위치와 이미지 위치의 차이 계산
-    dragOffset.value = {
-      x: event.clientX - imagePositions.value[index].x,
-      y: event.clientY - imagePositions.value[index].y
-    };
-    
-    // 마우스 이동 및 마우스 업 이벤트 리스너 등록
-    window.addEventListener('mousemove', handleDrag);
-    window.addEventListener('mouseup', endDrag);
-  }
-};
-
-const handleDrag = (event) => {
-  // 드래그 중인 이미지 찾기
-  const index = imagePositions.value.findIndex(img => img.isDragging);
-  if (index !== -1) {
-    // 새 위치 계산
-    imagePositions.value[index].x = event.clientX - dragOffset.value.x;
-    imagePositions.value[index].y = event.clientY - dragOffset.value.y;
-  }
-};
-
-const endDrag = () => {
-  // 드래그 상태 초기화
-  imagePositions.value = imagePositions.value.map(img => ({
-    ...img,
-    isDragging: false
-  }));
-  
-  // 이벤트 리스너 제거
-  window.removeEventListener('mousemove', handleDrag);
-  window.removeEventListener('mouseup', endDrag);
-};
-
 onMounted(() => {
   startDataUpdates()
-  
-  // 드래그 이벤트가 페이지 밖으로 나갔을 때도 처리
-  document.addEventListener('mouseleave', endDrag);
 })
 
 onUnmounted(() => {
   if (updateInterval !== null) {
     clearInterval(updateInterval)
   }
-
-  // 이벤트 리스너 정리
-  window.removeEventListener('mousemove', handleDrag);
-  window.removeEventListener('mouseup', endDrag);
-  document.removeEventListener('mouseleave', endDrag);
 })
 </script>
 
 <template>
-  <div class="overflow-auto h-screen w-screen flex flex-col overflow-hidden bg-gray-900">
-    <!-- 상단 헤더 영역 -->
-    <div class="w-full bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700 shadow-md py-3 px-4 flex items-center justify-between">
-      <!-- 좌측 로고 또는 제목 -->
-      <div class="text-white font-bold text-lg flex items-center">
-        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-        </svg>
-        KARI
-      </div>
-
-      <div class="w-full flex justify-center pt-4 pb-2">
-        <div class="toggle-container bg-gray-200 rounded-full p-1 flex">
-          <button 
-            @click="toggleTab('dashboard')" 
-            class="b-none toggle-button py-1.5 px-6 rounded-full font-medium text-sm transition-all duration-200"
-            :class="activeTab === 'dashboard' ? 'bg-black fw-600 text-gray-200 shadow-sm' : 'text-gray-600'">
-            처리공정
-          </button>
-          <button 
-            @click="toggleTab('data')" 
-            class="b-none toggle-button py-1.5 px-6 rounded-full font-medium text-sm transition-all duration-200"
-            :class="activeTab === 'data' ? 'bg-black fw-600 text-gray-200 shadow-sm' : 'text-gray-600'">
-            운영데이터
-          </button>
-        </div>
-      </div>
-      
-      <!-- 우측 시간 표시 -->
-      <div class="text-gray-400 text-sm flex items-center">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        {{ new Date().toLocaleTimeString() }}
-      </div>
-    </div>
-
-    <!-- 콘텐츠 영역 - 트랜지션 적용 -->
-    <!-- <div class="content-container flex-1 overflow-hidden relative"> -->
+  <div class="overflow-auto h-screen w-screen flex flex-col overflow-hidden ">
     <div class="flex-1 overflow-auto relative">
       <transition name="slide">
-        <div v-if="activeTab === 'dashboard'" key="dashboard" class="absolute inset-0 flex justify-center items-center bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700">
-          <!-- <div class="relative dashboard-container"> -->
-          <!-- 대시보드 장식 요소들 (기존 코드 유지) -->
-          <div class="absolute top-4 left-4 bg-black bg-opacity-50 text-cyan-400 p-2 rounded text-xs border border-cyan-800 z-20 flex items-center">
-            <span class="mr-1 w-2 h-2 bg-cyan-400 rounded-full inline-block"></span>
-            정화 시스템 가동중
-          </div>
-          
-          <div class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded text-xs border border-gray-700 z-20">
-            시설ID: WTP-{{Math.floor(Math.random() * 10000).toString().padStart(4, '0')}}
-          </div>
-          <div class="relative">
-            <!-- 이미지 위에 오버레이 효과 -->
-            <div class="overlay-grid"></div>
-            
-            <!-- 이미지들을 드래그 가능하게 수정 -->
-            <div 
-              v-for="image in imagePositions" 
-              :key="image.id" 
-              class="absolute cursor-move z-10"
-              :class="{ 'z-50': image.isDragging }"
-              :style="{ 
-                left: `${image.x}px`, 
-                top: `${image.y}px`, 
-                transform: image.isDragging ? 'scale(1.02)' : 'scale(1)',
-                transition: image.isDragging ? 'none' : 'transform 0.1s ease'
-              }"
-              @mousedown="(e) => startDrag(e, image)"
-            >
-              <div v-if="image.id === 'kari_01'" v-html="kari_01" class="w-[20rem]"></div>
-              <div v-else-if="image.id === 'kari_02'" v-html="kari_02" class="w-[30rem]"></div>
-              <div v-else-if="image.id === 'kari_03'" v-html="kari_03" class="w-[23rem]"></div>
-              <div v-else-if="image.id === 'kari_04'" v-html="kari_04" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_05'" v-html="kari_05" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_06'" v-html="kari_06" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_07'" v-html="kari_07" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_08'" v-html="kari_08" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_09'" v-html="kari_09" class="w-[15rem]"></div>
-              <div v-else-if="image.id === 'kari_10'" v-html="kari_10" class="w-[15rem]"></div>
-            </div>
-            
-          </div>
-        </div>
 
-        <div v-else key="datacenter" class="absolute inset-0 overflow-auto p-4 bg-gray-800 flex flex-col gap-4">
+        <div key="datacenter" class="absolute inset-0 overflow-auto p-8 flex flex-col gap-4">
           <!-- Top Row: Key Metrics -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- 필터 효율성 -->
