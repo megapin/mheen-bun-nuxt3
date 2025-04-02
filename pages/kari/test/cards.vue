@@ -12,5 +12,5 @@
     
     <KariTestCrystalizing />
   </div>
-  <!-- <KariTestWaterprocessed /> -->
+  <KariTestWaterprocessed />
 </template>

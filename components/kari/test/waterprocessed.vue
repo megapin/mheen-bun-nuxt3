@@ -154,6 +154,9 @@ const totalDailyPercentage = computed(() => {
 // 현재 뷰 모드
 const viewMode = ref('daily'); // 'daily' 또는 'hourly'
 
+// 현재 시간 가져오기
+const currentTime = ref(new Date().toLocaleTimeString());
+
 // 업데이트 간격 변수
 let updateInterval;
 
@@ -184,6 +187,9 @@ onMounted(() => {
     processedItems[4].value = processingData.dyeRemover;
     processedItems[5].value = processingData.metalExtractor;
     processedItems[6].value = processingData.ammoniaRemover;
+    
+    // 현재 시간 업데이트
+    currentTime.value = new Date().toLocaleTimeString();
   }, 5000);
 });
 
@@ -193,12 +199,6 @@ onUnmounted(() => {
     clearInterval(updateInterval);
   }
 });
-
-// 현재 시간 가져오기
-const currentTime = ref(new Date().toLocaleTimeString());
-setInterval(() => {
-  currentTime.value = new Date().toLocaleTimeString();
-}, 1000);
 </script>
 
 <template>
