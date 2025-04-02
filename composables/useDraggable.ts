@@ -1,5 +1,3 @@
-// import { ref, onMounted, onUnmounted } from 'vue'
-
 export interface DraggableItem {
   id: string;
   x: number;
